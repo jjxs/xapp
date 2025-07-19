@@ -7,6 +7,33 @@ const defaultAvatarUrl = 'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia0
 import { request } from '../../utils/util'
 import config from '../../config/config'
 
+// 菜单分类接口数据类型定义
+interface MenuCategory {
+  id: number;
+  name: string;
+  display_name: string;
+  domain: string;
+  master_data: MenuSubcategory[];
+  display_order: number;
+  extend: any;
+  option: any;
+  enabled: number;
+}
+
+interface MenuSubcategory {
+  id: number;
+  code: number;
+  name: string;
+  display_name: string;
+  display_order: number;
+  theme_id: string;
+  menu_count: number;
+  note: any;
+  extend: any;
+  option: any;
+  group: number;
+}
+
 Component({
   data: {
     motto: 'Hello World',
@@ -18,6 +45,13 @@ Component({
     canIUseGetUserProfile: wx.canIUse('getUserProfile'),
     canIUseNicknameComp: wx.canIUse('input.type.nickname'),
     apiData: null,
+    showRawData: false, // デバッグ用：生データ表示フラグ
+    
+    // メニューカテゴリーデータ
+    menuCategories: [] as MenuCategory[],
+    selectedCategoryId: null as number | null,
+    selectedCategory: null as MenuCategory | null,
+    selectedSubcategoryId: null as number | null,
   },
   lifetimes: {
     attached() {
@@ -28,20 +62,61 @@ Component({
   methods: {
     // 获取API数据
     fetchApiData() {
+        console.log(123)
+      // 显示加载中
+      wx.showLoading({ title: '読み込み中...' });
+      
       // 使用封装的请求函数和配置文件
       request({
-        url: `${config.apiBaseUrl}${config.apiUrls.test}`,
-        method: 'GET',
-        useMock: config.useMock // 根据环境配置决定是否使用模拟数据
+        url: `${config.apiBaseUrl}${config.apiUrls.master}`,
+        method: 'GET'
       })
       .then(res => {
         console.log('API请求成功:', res.data);
-        // 将对象转换为格式化的JSON字符串
+        
+        // 将对象转换为格式化的JSON字符串（用于调试显示）
         const formattedData = typeof res.data === 'object' ? 
           JSON.stringify(res.data, null, 2) : res.data.toString();
+          
+        // 处理菜单分类数据
+        let menuData = [];
+        if (Array.isArray(res.data)) {
+          // 按照display_order排序
+          menuData = res.data.sort((a, b) => a.display_order - b.display_order);
+          
+          // 过滤掉不需要显示的分类
+          menuData = menuData.filter(item => {
+            // 检查是否启用
+            if (item.enabled !== 1) return false;
+            
+            // 检查是否有显示选项
+            if (item.option && item.option.display === false) return false;
+            
+            return true;
+          });
+          
+          // 如果有数据，默认选中第一个分类
+          if (menuData.length > 0) {
+            this.setData({
+              selectedCategoryId: menuData[0].id,
+              selectedCategory: menuData[0]
+            });
+            
+            // 如果第一个分类有子分类，默认选中第一个子分类
+            if (menuData[0].master_data && menuData[0].master_data.length > 0) {
+              this.setData({
+                selectedSubcategoryId: menuData[0].master_data[0].id
+              });
+            }
+          }
+        }
+        
         this.setData({
-          apiData: formattedData
+          apiData: formattedData,
+          menuCategories: menuData
         });
+        
+        wx.hideLoading();
       })
       .catch(err => {
         console.error('API请求失败:', err);
@@ -50,13 +125,61 @@ Component({
           apiData: '请求失败：' + (err.message || '未知错误')
         });
         // 显示错误提示
+        wx.hideLoading();
         wx.showToast({
-          title: '请求失败',
+          title: '読み込み失敗',
           icon: 'error',
           duration: 2000
         });
       });
     },
+    
+    // 选择顶级分类
+    selectCategory(e: any) {
+      const id = e.currentTarget.dataset.id;
+      const index = e.currentTarget.dataset.index;
+      const category = this.data.menuCategories[index];
+      
+      this.setData({
+        selectedCategoryId: id,
+        selectedCategory: category,
+        selectedSubcategoryId: category.master_data && category.master_data.length > 0 ? 
+          category.master_data[0].id : null
+      });
+      
+      console.log('选择分类:', category.display_name);
+    },
+    
+    // 选择子分类
+    selectSubcategory(e: any) {
+      const id = e.currentTarget.dataset.id;
+      
+      this.setData({
+        selectedSubcategoryId: id
+      });
+      
+      // 这里可以添加获取该子分类下的菜单项的逻辑
+      console.log('选择子分类:', id);
+      
+      // 示例：显示菜单数量提示
+      const index = e.currentTarget.dataset.index;
+      const subcategory = this.data.selectedCategory?.master_data[index];
+      if (subcategory) {
+        wx.showToast({
+          title: `${subcategory.display_name}: ${subcategory.menu_count}個のメニュー`,
+          icon: 'none',
+          duration: 1500
+        });
+      }
+    },
+    
+    // 切换显示原始数据（调试用）
+    toggleRawData() {
+      this.setData({
+        showRawData: !this.data.showRawData
+      });
+    },
+    
     // 事件处理函数
     bindViewTap() {
       wx.navigateTo({

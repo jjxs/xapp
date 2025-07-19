@@ -1,14 +1,49 @@
 <!--index.wxml-->
-<navigation-bar title="Weixin" back="{{false}}" color="black" background="#FFF"></navigation-bar>
+<navigation-bar title="メニュー" back="{{false}}" color="black" background="#FFF"></navigation-bar>
 <scroll-view class="scrollarea" scroll-y type="list">
   <view class="container">
-    <view class="userinfo">
+    <!-- メニューカテゴリー表示 -->
+    <view class="menu-categories" wx:if="{{menuCategories.length > 0}}">
+      <!-- トップカテゴリー -->
+      <view class="category-list">
+        <view 
+          wx:for="{{menuCategories}}" 
+          wx:key="id" 
+          class="category-item {{selectedCategoryId === item.id ? 'active' : ''}}"
+          bindtap="selectCategory"
+          data-id="{{item.id}}"
+          data-index="{{index}}"
+        >
+          <text>{{item.display_name}}</text>
+        </view>
+      </view>
+      
+      <!-- サブカテゴリー -->
+      <view class="subcategory-container" wx:if="{{selectedCategory && selectedCategory.master_data.length > 0}}">
+        <view class="subcategory-list">
+          <view 
+            wx:for="{{selectedCategory.master_data}}" 
+            wx:key="id"
+            class="subcategory-item {{selectedSubcategoryId === item.id ? 'active' : ''}}"
+            bindtap="selectSubcategory"
+            data-id="{{item.id}}"
+            data-index="{{index}}"
+          >
+            <text>{{item.display_name}}</text>
+            <text class="menu-count" wx:if="{{item.menu_count > 0}}">{{item.menu_count}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- ユーザー情報（非表示） -->
+    <view class="userinfo" hidden="true">
       <block wx:if="{{canIUseNicknameComp && !hasUserInfo}}">
         <button class="avatar-wrapper" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
           <image class="avatar" src="{{userInfo.avatarUrl}}"></image>
         </button>
         <view class="nickname-wrapper">
-          <text class="nickname-label">昵称1</text>
+          <text class="nickname-label">昵称</text>
           <input type="nickname" class="nickname-input" placeholder="请输入昵称" bind:change="onInputChange" />
         </view>
       </block>
@@ -21,14 +56,16 @@
         <text class="userinfo-nickname">{{userInfo.nickName}}</text>
       </block>
     </view>
-    <view class="usermotto">
-      <text class="user-motto">{{motto}}</text>
-    </view>
     
-    <!-- 显示API数据 -->
-    <view class="api-data" wx:if="{{apiData}}">
-      <view class="api-title">API返回数据:</view>
-      <view class="api-content">{{apiData}}</view>
-    </view>
+    <!-- デバッグ用：API返回データ表示 -->
+    <!-- <view class="debug-section">
+      <view class="debug-toggle" bindtap="toggleRawData">
+        <text>{{showRawData ? '生データを隠す' : '生データを表示'}}</text>
+      </view>
+      <view class="api-data" wx:if="{{showRawData && apiData}}">
+        <view class="api-title">API返回数据:</view>
+        <view class="api-content">{{apiData}}</view>
+      </view>
+    </view> -->
   </view>
 </scroll-view>

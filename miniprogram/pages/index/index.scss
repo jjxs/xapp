@@ -3,12 +3,115 @@ page {
   height: 100vh;
   display: flex;
   flex-direction: column;
+  background-color: #f5f5f5;
 }
+
 .scrollarea {
   flex: 1;
   overflow-y: hidden;
 }
 
+.container {
+  padding: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* メニューカテゴリースタイル */
+.menu-categories {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* トップカテゴリー */
+.category-list {
+  width: 100%;
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  background-color: #fff;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.category-item {
+  padding: 8px 16px;
+  margin: 0 5px;
+  white-space: nowrap;
+  font-size: 14px;
+  color: #333;
+  position: relative;
+  transition: all 0.3s;
+}
+
+.category-item.active {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+.category-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 3px;
+  background-color: #e74c3c;
+  border-radius: 3px;
+}
+
+/* サブカテゴリー */
+.subcategory-container {
+  width: 100%;
+  background-color: #fff;
+  padding: 10px 0;
+  margin-top: 1px;
+}
+
+.subcategory-list {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 0 10px;
+}
+
+.subcategory-item {
+  width: calc(33.33% - 10px);
+  margin: 5px;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 14px;
+  color: #333;
+  position: relative;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.subcategory-item.active {
+  background-color: #fff0f0;
+  color: #e74c3c;
+  box-shadow: 0 2px 5px rgba(231, 76, 60, 0.2);
+}
+
+.menu-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: #e74c3c;
+  color: white;
+  font-size: 10px;
+  width: 18px;
+  height: 18px;
+  line-height: 18px;
+  text-align: center;
+  border-radius: 50%;
+}
+
+/* ユーザー情報（非表示） */
 .userinfo {
   display: flex;
   flex-direction: column;
@@ -23,10 +126,6 @@ page {
   height: 128rpx;
   margin: 20rpx;
   border-radius: 50%;
-}
-
-.usermotto {
-  margin-top: 200px;
 }
 
 .avatar-wrapper {
@@ -61,10 +160,35 @@ page {
   flex: 1;
 }
 
+/* デバッグセクション */
+.debug-section {
+  width: 90%;
+  margin-top: 30px;
+  margin-bottom: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.debug-toggle {
+  background-color: #e0e0e0;
+  padding: 8px 16px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: #333;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  transition: all 0.3s;
+}
+
+.debug-toggle:active {
+  background-color: #ccc;
+  transform: scale(0.98);
+}
+
 /* API数据显示区域样式 */
 .api-data {
-  margin-top: 30px;
-  width: 80%;
+  width: 100%;
   background-color: #f8f8f8;
   border-radius: 8px;
   padding: 15px;
@@ -83,4 +207,6 @@ page {
   color: #666;
   word-break: break-all;
   white-space: pre-wrap;
+  max-height: 300px;
+  overflow-y: auto;
 }
