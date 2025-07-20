@@ -34,6 +34,33 @@ interface MenuSubcategory {
   group: number;
 }
 
+// 菜单项接口数据类型定义
+interface MenuItem {
+  category: number;
+  category_group: number;
+  category_name: string;
+  display_order: number;
+  id: number;
+  menu: number;
+  menu_id: number;
+  menu_no: number;
+  image: string;
+  menu_name: string;
+  menu_price: number;
+  menu_ori_price: number;
+  menu_usable: boolean;
+  updated_at: string;
+  stock_status: number;
+  note: any;
+  tax_in: boolean;
+  mincount: number;
+  is_free: number;
+  introduction: any;
+  level: any;
+  menu_options: any;
+  course: any[];
+}
+
 Component({
   data: {
     motto: 'Hello World',
@@ -52,6 +79,10 @@ Component({
     selectedCategoryId: null as number | null,
     selectedCategory: null as MenuCategory | null,
     selectedSubcategoryId: null as number | null,
+    
+    // 菜单项数据
+    menuItems: [] as MenuItem[],
+    isLoadingMenuItems: false,
   },
   lifetimes: {
     attached() {
@@ -158,8 +189,8 @@ Component({
         selectedSubcategoryId: id
       });
       
-      // 这里可以添加获取该子分类下的菜单项的逻辑
-      console.log('选择子分类:', id);
+      // 获取该子分类下的菜单项
+      this.fetchMenuItems(id);
       
       // 示例：显示菜单数量提示
       const index = e.currentTarget.dataset.index;
@@ -171,6 +202,60 @@ Component({
           duration: 1500
         });
       }
+    },
+    
+    // 获取菜单项数据
+    fetchMenuItems(subcategoryId: number) {
+      // 显示加载状态
+      this.setData({
+        isLoadingMenuItems: true,
+        menuItems: [] // 清空之前的菜单项
+      });
+      
+      wx.showLoading({ title: 'メニュー読み込み中...' });
+      
+      // 构建API URL，这里假设API URL格式为：/menu/items/?category={subcategoryId}
+      // 您需要根据实际情况调整API URL
+      const apiUrl = `${config.apiBaseUrl}${config.apiUrls.menuItems}${subcategoryId}`;
+      
+      request({
+        url: apiUrl,
+        method: 'GET'
+      })
+      .then(res => {
+        console.log('菜单项数据获取成功:', res.data);
+        
+        // 处理菜单项数据
+        let menuItems = [];
+        if (Array.isArray(res.data)) {
+          // 按照display_order排序
+          menuItems = res.data.sort((a, b) => a.display_order - b.display_order);
+          
+          // 过滤可用的菜单项（如果需要）
+          // menuItems = menuItems.filter(item => item.menu_usable);
+        }
+        
+        this.setData({
+          menuItems: menuItems,
+          isLoadingMenuItems: false
+        });
+        
+        wx.hideLoading();
+      })
+      .catch(err => {
+        console.error('菜单项数据获取失败:', err);
+        
+        this.setData({
+          isLoadingMenuItems: false
+        });
+        
+        wx.hideLoading();
+        wx.showToast({
+          title: 'メニュー読み込み失敗',
+          icon: 'error',
+          duration: 2000
+        });
+      });
     },
     
     // 切换显示原始数据（调试用）

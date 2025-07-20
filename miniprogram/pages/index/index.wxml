@@ -1,71 +1,98 @@
 <!--index.wxml-->
 <navigation-bar title="メニュー" back="{{false}}" color="black" background="#FFF"></navigation-bar>
-<scroll-view class="scrollarea" scroll-y type="list">
-  <view class="container">
-    <!-- メニューカテゴリー表示 -->
-    <view class="menu-categories" wx:if="{{menuCategories.length > 0}}">
-      <!-- トップカテゴリー -->
-      <view class="category-list">
-        <view 
-          wx:for="{{menuCategories}}" 
-          wx:key="id" 
-          class="category-item {{selectedCategoryId === item.id ? 'active' : ''}}"
-          bindtap="selectCategory"
-          data-id="{{item.id}}"
-          data-index="{{index}}"
-        >
-          <text>{{item.display_name}}</text>
-        </view>
+<view class="page-container">
+  <!-- 左侧一级分类 + 右侧内容区域的布局 -->
+  <view class="menu-layout" wx:if="{{menuCategories.length > 0}}">
+    <!-- 左侧一级分类（料理） -->
+    <view class="main-categories">
+      <view 
+        wx:for="{{menuCategories}}" 
+        wx:key="id" 
+        class="main-category-item {{selectedCategoryId === item.id ? 'active' : ''}}" 
+        bindtap="selectCategory"
+        data-id="{{item.id}}"
+        data-index="{{index}}"
+      >
+        <text>{{item.display_name}}</text>
       </view>
-      
-      <!-- サブカテゴリー -->
-      <view class="subcategory-container" wx:if="{{selectedCategory && selectedCategory.master_data.length > 0}}">
-        <view class="subcategory-list">
+    </view>
+    
+    <!-- 右侧内容区域 -->
+    <view class="content-area">
+      <!-- 顶部二级分类（前菜、餃子等） -->
+      <scroll-view class="subcategory-scroll" scroll-x="true" wx:if="{{selectedCategory && selectedCategory.master_data.length > 0}}">
+        <view class="subcategory-list-horizontal">
           <view 
             wx:for="{{selectedCategory.master_data}}" 
             wx:key="id"
-            class="subcategory-item {{selectedSubcategoryId === item.id ? 'active' : ''}}"
+            class="subcategory-item-horizontal {{selectedSubcategoryId === item.id ? 'active' : ''}}"
             bindtap="selectSubcategory"
             data-id="{{item.id}}"
             data-index="{{index}}"
           >
             <text>{{item.display_name}}</text>
-            <text class="menu-count" wx:if="{{item.menu_count > 0}}">{{item.menu_count}}</text>
+            <!-- <text class="menu-count" wx:if="{{item.menu_count > 0}}">{{item.menu_count}}</text> -->
+          </view>
+        </view>
+      </scroll-view>
+      
+      <!-- 菜单显示区域 -->
+      <view class="menu-display-area">
+        <view wx:if="{{isLoadingMenuItems}}" class="loading-indicator">
+          <text>メニューを読み込み中...</text>
+        </view>
+        <view wx:elif="{{menuItems.length === 0}}" class="placeholder-text">
+          <text>このカテゴリーにメニューがありません</text>
+        </view>
+        <view wx:else class="menu-items-grid">
+          <view wx:for="{{menuItems}}" wx:key="id" class="menu-item {{!item.menu_usable ? 'sold-out' : ''}}">
+            <view class="menu-item-image-container">
+              <image class="menu-item-image" src="{{item.image}}" mode="aspectFill" lazy-load></image>
+              <view wx:if="{{!item.menu_usable}}" class="sold-out-badge">売切れ</view>
+            </view>
+            <view class="menu-item-info">
+              <view class="menu-item-name">{{item.menu_name}}</view>
+              <view class="menu-item-price-row">
+                <text class="menu-item-price">¥{{item.menu_price}}</text>
+                <text wx:if="{{item.menu_ori_price > 0}}" class="menu-item-original-price">¥{{item.menu_ori_price}}</text>
+              </view>
+              <view wx:if="{{item.introduction}}" class="menu-item-intro">{{item.introduction}}</view>
+            </view>
           </view>
         </view>
       </view>
     </view>
-    
-    <!-- ユーザー情報（非表示） -->
-    <view class="userinfo" hidden="true">
-      <block wx:if="{{canIUseNicknameComp && !hasUserInfo}}">
-        <button class="avatar-wrapper" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
-          <image class="avatar" src="{{userInfo.avatarUrl}}"></image>
-        </button>
-        <view class="nickname-wrapper">
-          <text class="nickname-label">昵称</text>
-          <input type="nickname" class="nickname-input" placeholder="请输入昵称" bind:change="onInputChange" />
-        </view>
-      </block>
-      <block wx:elif="{{!hasUserInfo}}">
-        <button wx:if="{{canIUseGetUserProfile}}" bindtap="getUserProfile"> 获取头像昵称 </button>
-        <view wx:else> 请使用2.10.4及以上版本基础库 </view>
-      </block>
-      <block wx:else>
-        <image bindtap="bindViewTap" class="userinfo-avatar" src="{{userInfo.avatarUrl}}" mode="cover"></image>
-        <text class="userinfo-nickname">{{userInfo.nickName}}</text>
-      </block>
-    </view>
-    
-    <!-- デバッグ用：API返回データ表示 -->
-    <!-- <view class="debug-section">
-      <view class="debug-toggle" bindtap="toggleRawData">
-        <text>{{showRawData ? '生データを隠す' : '生データを表示'}}</text>
-      </view>
-      <view class="api-data" wx:if="{{showRawData && apiData}}">
-        <view class="api-title">API返回数据:</view>
-        <view class="api-content">{{apiData}}</view>
-      </view>
-    </view> -->
   </view>
-</scroll-view>
+  
+  <!-- ユーザー情報（非表示） -->
+  <view class="userinfo" hidden="true">
+    <block wx:if="{{canIUseNicknameComp && !hasUserInfo}}">
+      <button class="avatar-wrapper" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
+        <image class="avatar" src="{{userInfo.avatarUrl}}"></image>
+      </button>
+      <view class="nickname-wrapper">
+        <text class="nickname-label">昵称</text>
+        <input type="nickname" class="nickname-input" placeholder="请输入昵称" bind:change="onInputChange" />
+      </view>
+    </block>
+    <block wx:elif="{{!hasUserInfo}}">
+      <button wx:if="{{canIUseGetUserProfile}}" bindtap="getUserProfile"> 获取头像昵称 </button>
+      <view wx:else> 请使用2.10.4及以上版本基础库 </view>
+    </block>
+    <block wx:else>
+      <image bindtap="bindViewTap" class="userinfo-avatar" src="{{userInfo.avatarUrl}}" mode="cover"></image>
+      <text class="userinfo-nickname">{{userInfo.nickName}}</text>
+    </block>
+  </view>
+  
+  <!-- デバッグ用：API返回データ表示 -->
+  <view class="debug-section" hidden="true">
+    <view class="debug-toggle" bindtap="toggleRawData">
+      <text>{{showRawData ? '生データを隠す' : '生データを表示'}}</text>
+    </view>
+    <view class="api-data" wx:if="{{showRawData && apiData}}">
+      <view class="api-title">API返回数据:</view>
+      <view class="api-content">{{apiData}}</view>
+    </view>
+  </view>
+</view>

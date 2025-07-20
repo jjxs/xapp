@@ -12,7 +12,7 @@ const CURRENT_ENV = ENV.DEV;
 
 // API基础URL配置
 const API_BASE_URL = {
-  [ENV.DEV]: 'http://192.168.1.103:8000',  // 开发环境API地址
+  [ENV.DEV]: 'http://192.168.1.105:8000',  // 开发环境API地址
   [ENV.TEST]: 'https://test-api.example.com', // 测试环境API地址
   [ENV.PROD]: 'https://api.example.com'      // 生产环境API地址
 };
@@ -35,6 +35,7 @@ export default {
     user: '/user/',
     login: '/login/',
     master: '/master/xappmaster/?domain__in=menu_category&__mac=',
+    menuItems: '/restaurant/xappmenu/menucategory/?category_group=', // 添加菜单项API端点
     // ...
   }
 };
