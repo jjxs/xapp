@@ -168,3 +168,20 @@ export const request = (options: RequestOptions): Promise<RequestResult> => {
     });
   });
 };
+
+// 处理菜单图片URL
+export const formatImageUrl = (imageUrl: string) => {
+  if (!imageUrl) return ''; // 如果没有图片URL，返回空字符串
+  
+  // 如果已经是完整URL（以http或https开头），直接返回
+  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+    return encodeURI(imageUrl); // 确保URL编码正确
+  }
+  
+  // 如果是相对路径，构建完整URL
+  // 假设格式为：menu_images/31.jpg?2025-06-23 07:31:16.155087
+  const baseUrl = 'https://foodlifebucket.s3-ap-northeast-1.amazonaws.com/';
+  
+  
+  return encodeURI(`${baseUrl}${imageUrl}`);
+};
